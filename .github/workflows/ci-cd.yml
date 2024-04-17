@@ -38,7 +38,7 @@ jobs:
       #   az container create --resource-group my-container-app --name container-app-test --image kemonize/gin_test:${{ github.sha }} --cpu 0.25 --memory 0.5
       run: |
           az containerapp up \
-          --name my-container-app \
+          --name container-app-test \
           --image kemonize/gin_test:${{ github.sha }} \
           --resource-group my-container-app \
           --environment container-app-test \
