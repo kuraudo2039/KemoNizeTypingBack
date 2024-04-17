@@ -1,7 +1,10 @@
 name: CI/CD Pipeline
 
 on:
-  push:
+  # push:
+  #   branches:
+  #     - main
+  pull_request:
     branches:
       - main
 
@@ -25,10 +28,19 @@ jobs:
 
     - name: Build and Push Docker image
       run: |
-        docker build -t ${{ secrets.DOCKER_USERNAME }}/myapp:${{ github.sha }} .
-        docker push ${{ secrets.DOCKER_USERNAME }}/myapp:${{ github.sha }}
+        export TAG=${{ github.sha }}
+        docker-compose -f dockerfile_prod/docker-compose.yml build
+        docker-compose -f dockerfile_prod/docker-compose.yml push
 
     - name: Deploy to Azure
+      # run: |
+      #   az container delete --resource-group my-container-app --name container-app-test --yes
+      #   az container create --resource-group my-container-app --name container-app-test --image kemonize/gin_test:${{ github.sha }} --cpu 0.25 --memory 0.5
       run: |
-        az container delete --resource-group my-container-app --name container-app-test --yes
-        az container update --resource-group my-container-app --name container-app-test --image ${{ secrets.DOCKER_USERNAME }}/myapp:${{ github.sha }} --cpu 0.25 --memory 0.5
+          az containerapp up \
+          --name my-container-app \
+          --image kemonize/gin_test:${{ github.sha }} \
+          --resource-group my-container-app \
+          --environment container-app-test \
+          --ingress external \
+          --target-port 3000

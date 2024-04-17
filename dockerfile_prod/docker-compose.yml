@@ -1,0 +1,9 @@
+version: "3.9"
+services:
+  app:
+    image: kemonize/gin_test:${TAG} # 環境変数 TAG を使用（export TAG=hoge）
+    build:
+      context: ../
+      dockerfile: dockerfile_prod/Dockerfile
+    ports:
+      - 3000:3000
