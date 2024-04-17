@@ -41,6 +41,6 @@ jobs:
           --name my-container-app \
           --image kemonize/gin_test:${{ github.sha }} \
           --resource-group my-container-app \
-          --environment ${{ secrets.ENVIRONMENT_NAME }} \
+          --environment container-app-test \
           --ingress external \
           --target-port 3000
