@@ -1,3 +1,4 @@
+# 環境変数について https://docs.github.com/ja/actions/learn-github-actions/variables
 name: CI/CD Pipeline
 
 on:
@@ -8,6 +9,8 @@ on:
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
+    env:
+      PJ: coyote
     steps:
     - name: Checkout the repo
       uses: actions/checkout@v2
@@ -26,7 +29,6 @@ jobs:
     - name: Build and Push Docker image
       run: |
         export TAG=${{ github.sha }}
-        export PJ=coyote
         docker-compose -f dockerfile_prod/docker-compose.yml build
         docker-compose -f dockerfile_prod/docker-compose.yml push
 
