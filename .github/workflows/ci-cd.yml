@@ -26,6 +26,7 @@ jobs:
     - name: Build and Push Docker image
       run: |
         export TAG=${{ github.sha }}
+        export PJ=coyote
         docker-compose -f dockerfile_prod/docker-compose.yml build
         docker-compose -f dockerfile_prod/docker-compose.yml push
 
@@ -35,9 +36,9 @@ jobs:
       #   az container create --resource-group my-container-app --name container-app-test --image kemonize/gin_test:${{ github.sha }} --cpu 0.25 --memory 0.5
       run: |
           az containerapp up \
-          --name container-app-test \
-          --image kemonize/gin_test:${{ github.sha }} \
-          --resource-group my-container-app \
-          --environment container-app-test \
+          --name ${PJ}-container-app \
+          --image kemonize/${PJ}_gin:${{ github.sha }} \
+          --resource-group ${PJ}-group \
+          --environment ${PJ}-container-app-env \
           --ingress external \
           --target-port 3000

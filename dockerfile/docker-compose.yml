@@ -1,7 +1,7 @@
 version: "3.9"
 services:
   back:
-    image: kemonize/gin_test:${TAG} # 環境変数 TAG を使用（export TAG=hoge）
+    image: kemonize/coyote_gin
     build:
       context: .
       dockerfile: Dockerfile
@@ -10,5 +10,5 @@ services:
     volumes:
       - ../workdir:/home/workdir
     working_dir: /home/workdir
-    container_name: gin_test
+    container_name: coyote_gin
     command: sh -c "tail -f /dev/null"
