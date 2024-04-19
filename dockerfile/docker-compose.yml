@@ -3,8 +3,11 @@ services:
   back:
     image: kemonize/coyote_gin
     build:
-      context: .
-      dockerfile: Dockerfile
+      context: ../
+      dockerfile: dockerfile/Dockerfile
+    # デプロイ後環境変数を合わせるためにsecrets/firebase_credentials.jsonを環境変数に登録
+    env_file:
+      - ../.env
     ports:
       - 3000:3000
     volumes:

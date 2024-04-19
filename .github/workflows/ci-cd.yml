@@ -1,6 +1,7 @@
 # 環境変数について https://docs.github.com/ja/actions/learn-github-actions/variables
 name: CI/CD Pipeline
 
+# TODO_プルリク時に検証、プッシュ時に反映の方が良い
 on:
   pull_request:
     branches:
@@ -14,7 +15,7 @@ jobs:
     steps:
     - name: Checkout the repo
       uses: actions/checkout@v2
-
+    
     - name: Log in to Azure CLI
       uses: azure/login@v1
       with:
@@ -43,4 +44,6 @@ jobs:
           --resource-group ${PJ}-group \
           --environment ${PJ}-container-app-env \
           --ingress external \
-          --target-port 3000
+          --target-port 3000 \
+          --env-vars 'FIREBASE_CREDENTIALS=${{ secrets.FIREBASE_CREDENTIALS }}'
+      # github actionsに登録済みのFIREBASE_CREDENTIALSをデプロイ後コンテナ上の環境変数に登録 ※jsonはダブルクォーテーションが含まれるので、必ずシングルクォーテーションで囲むこと。
