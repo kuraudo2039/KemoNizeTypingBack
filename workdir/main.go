@@ -1,10 +1,19 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"net/http"
+	"os"
 
 	"github.com/gin-gonic/gin"
+
+	"log"
+
+	"cloud.google.com/go/firestore"
+	firebase "firebase.google.com/go"
+	"google.golang.org/api/iterator"
+	"google.golang.org/api/option"
 )
 
 // schema
@@ -53,9 +62,63 @@ func postAlbum(c *gin.Context) {
 	c.IndentedJSON(http.StatusCreated, newAlbum)
 }
 
+// firestoreクライアント初期化
+func initFirebaseClient() (*firestore.Client, context.Context) {
+	// Use a service account
+	ctx := context.Background()
+	sa := option.WithCredentialsJSON([]byte(os.Getenv("FIREBASE_CREDENTIALS")))
+	app, err := firebase.NewApp(ctx, nil, sa)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	client, err := app.Firestore(ctx)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	return client, ctx
+}
+
+// get todos
+func getTodos(client *firestore.Client, ctx context.Context) func(c *gin.Context) {
+	return func(c *gin.Context) {
+		iter := client.Collection("todos").OrderBy("createdAt", firestore.Asc).Documents(ctx)
+
+		type fireStoreCollection struct {
+			ID        string                 `json:"id"`
+			Documents map[string]interface{} `json:"documents"`
+		}
+		var data []fireStoreCollection
+
+		for {
+			doc, err := iter.Next()
+			if err == iterator.Done {
+				break
+			}
+			if err != nil {
+				log.Fatalf("Failed to iterate: %v", err)
+			}
+			fmt.Println(doc.Ref.ID)
+			fmt.Println(doc.Data())
+
+			data = append(data, fireStoreCollection{doc.Ref.ID, doc.Data()})
+		}
+
+		c.IndentedJSON(http.StatusOK, data)
+	}
+}
+
 // main
 func main() {
+
+	client, ctx := initFirebaseClient()
+	defer client.Close()
+
 	engine := gin.Default()
+
+	// firebase endpoints
+	engine.GET("/todos", getTodos(client, ctx))
 
 	// endpoints
 	engine.GET("/helloworld", func(c *gin.Context) {

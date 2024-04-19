@@ -7,7 +7,7 @@ RUN apt update && apt install -y curl locales && locale-gen ja_JP.UTF-8
 WORKDIR /app
 
 # ソースコードのコピー
-COPY ../workdir/gin_test .
+COPY ../workdir .
 RUN chown -R root:root ./
 RUN ls -la
 RUN pwd
