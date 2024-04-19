@@ -45,5 +45,5 @@ jobs:
           --environment ${PJ}-container-app-env \
           --ingress external \
           --target-port 3000 \
-          --env-vars FIREBASE_CREDENTIALS="${{ secrets.FIREBASE_CREDENTIALS }}"
+          --set-env-vars "FIREBASE_CREDENTIALS=${{ secrets.FIREBASE_CREDENTIALS }}"
       # github actionsに登録済みのFIREBASE_CREDENTIALSをデプロイ後コンテナ上の環境変数に登録
