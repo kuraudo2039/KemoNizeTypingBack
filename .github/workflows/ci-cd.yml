@@ -1,6 +1,7 @@
 # 環境変数について https://docs.github.com/ja/actions/learn-github-actions/variables
 name: CI/CD Pipeline
 
+# TODO_プルリク時に検証、プッシュ時に反映の方が良い
 on:
   pull_request:
     branches:
