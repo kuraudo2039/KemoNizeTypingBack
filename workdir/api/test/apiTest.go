@@ -17,4 +17,7 @@ func RegistApi(engine *gin.Engine, client *firestore.Client, ctx context.Context
 	// firebase endpoints
 	engine.GET("/todos", getTodos(client, ctx))
 	engine.POST("/todos", createTodos(client, ctx))
+
+	// websocket
+	engine.GET("/ws", testWs)
 }

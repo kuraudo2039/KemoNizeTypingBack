@@ -7,6 +7,8 @@ import (
 
 	apiTest "gin_test/api/test"
 	util "gin_test/util"
+
+	"github.com/gin-contrib/cors"
 )
 
 // main
@@ -18,6 +20,9 @@ func main() {
 
 	// initEngine
 	engine := gin.Default()
+	engine.Use(cors.New(cors.Config{
+		AllowOrigins: []string{"*"},
+	}))
 
 	// endpoints
 	engine.GET("/helloworld", func(c *gin.Context) {

@@ -1,6 +1,6 @@
 version: "3.9"
 services:
-  app:
+  api:
     image: kemonize/${PJ}_gin:${TAG} # 環境変数 TAG を使用（export TAG=hoge）
     build:
       context: ../
