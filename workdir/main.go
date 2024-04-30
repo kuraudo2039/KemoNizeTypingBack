@@ -33,6 +33,7 @@ func main() {
 
 	// regist test api
 	apiTest.RegistApi(engine, client, ctx)
+	go apiTest.WsHandleMessages()
 
 	engine.Run(":3000")
 }
