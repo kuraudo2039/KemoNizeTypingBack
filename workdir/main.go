@@ -5,8 +5,9 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	apiTest "gin_test/api/test"
-	util "gin_test/util"
+	apiTest "gin_test/coyote/api/test"
+	coyoteHttpApi "gin_test/coyote/http"
+	util "gin_test/coyote/util"
 
 	"github.com/gin-contrib/cors"
 )
@@ -34,6 +35,9 @@ func main() {
 	// regist test api
 	apiTest.RegistApi(engine, client, ctx)
 	go apiTest.WsHandleMessages()
+
+	// regist coyote api
+	coyoteHttpApi.RegistHttpApi(engine, client)
 
 	engine.Run(":3000")
 }
