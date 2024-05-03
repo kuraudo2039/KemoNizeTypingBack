@@ -3,9 +3,12 @@ package memberObj
 import "github.com/gorilla/websocket"
 
 type Member struct {
-	ID     int
-	Name   string
-	Client *websocket.Conn
+	Name string          `json:"name"`
+	Conn *websocket.Conn `json:"-"`
 }
 
-var members = make(map[int]Member)
+// var members = make(map[int]Member)
+
+func CreateMember(conn *websocket.Conn, name string) Member {
+	return Member{name, conn}
+}

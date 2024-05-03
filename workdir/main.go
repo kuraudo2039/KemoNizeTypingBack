@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 
 	apiTest "gin_test/coyote/api/test"
+	coyoteWsApi "gin_test/coyote/api/ws"
 	coyoteHttpApi "gin_test/coyote/http"
 	util "gin_test/coyote/util"
 
@@ -23,6 +24,8 @@ func main() {
 	engine := gin.Default()
 	engine.Use(cors.New(cors.Config{
 		AllowOrigins: []string{"*"},
+		AllowMethods: []string{"GET", "POST", "OPTIONS", "PUT", "DELETE"},
+		AllowHeaders: []string{"Origin", "Content-Type"},
 	}))
 
 	// endpoints
@@ -38,6 +41,7 @@ func main() {
 
 	// regist coyote api
 	coyoteHttpApi.RegistHttpApi(engine, client)
+	go coyoteWsApi.HandleMessages()
 
 	engine.Run(":3000")
 }

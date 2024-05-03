@@ -15,7 +15,7 @@ func Log(log LogObj) {
 	env := os.Getenv("ENVIRONMENT")
 	switch env {
 	case "DEV":
-		fmt.Println(log.Message)
+		fmt.Println("▼" + log.Message)
 		if log.Data != nil {
 			fmt.Println(log.Data)
 		}

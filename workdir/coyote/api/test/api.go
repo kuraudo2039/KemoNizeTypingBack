@@ -46,6 +46,7 @@ func postAlbum(c *gin.Context) {
 	// 受け取ったJSONを`newAlbum`にバインドするために`BindJSON`を呼び出す
 	if err := c.BindJSON(&newAlbum); err != nil {
 		fmt.Print(err)
+		return
 	}
 
 	// スライスへ新しいアルバムを追加する
