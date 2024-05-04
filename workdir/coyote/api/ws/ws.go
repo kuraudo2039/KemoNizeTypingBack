@@ -32,7 +32,6 @@ var wsupgrader = websocket.Upgrader{
 	},
 }
 
-// TODO_導通テスト
 func ConnectWs(client *firestore.Client) func(*gin.Context) {
 	return func(c *gin.Context) {
 		// クエリパラメータ取得&ルーム存在チェック
@@ -63,10 +62,10 @@ func ConnectWs(client *firestore.Client) func(*gin.Context) {
 		// メンバー作成＆ルームメンバー追加
 		member := memberObj.CreateMember(conn, memberName)
 		if room := roomObj.AddMember(roomId, member); room != nil {
-			marshaledRoom, _ := json.Marshal(map[string]interface{}{"room": room})
-			conn.WriteJSON(WSMessage{0, "connection completed", roomId, marshaledRoom})
+			membersUpdate(roomId, broadcast)
 		} else {
 			util.Log(util.LogObj{"error(Failed to add member)", member})
+			// errorOccurred("入室に失敗しました。\nルームが存在しないか、既に使われている名前です。", member, roomId)
 			return
 		}
 		defer deferConnectWs(roomId, member)
@@ -78,7 +77,6 @@ func ConnectWs(client *firestore.Client) func(*gin.Context) {
 				util.Log(util.LogObj{"error(Failed to read message)", err.Error()})
 				break
 			}
-			util.Log(util.LogObj{"received", msg})
 			lastActivity = time.Now() // 受信時にアクティビティ時間更新
 
 			var msgJson WSMessage
@@ -86,10 +84,13 @@ func ConnectWs(client *firestore.Client) func(*gin.Context) {
 				util.Log(util.LogObj{"error(Failed to unmarshal message)", err.Error()})
 				continue
 			}
+			util.Log(util.LogObj{"received", msgJson})
 
 			switch msgJson.Type {
-			case 0:
 			case 1:
+				sendComment(msgJson, roomId, broadcast)
+			case 2:
+
 			default:
 				util.Log(util.LogObj{"log(Unknown message type)", msg})
 			}
@@ -99,7 +100,9 @@ func ConnectWs(client *firestore.Client) func(*gin.Context) {
 
 func deferConnectWs(roomId string, member memberObj.Member) {
 	util.Log(util.LogObj{"log", "launch deferConnectWs"})
+
 	roomObj.RemoveMember(roomId, member)
+	membersUpdate(roomId, broadcast)
 }
 
 func checkIdleTimeout(conn *websocket.Conn, ctx context.Context, idleTimeout time.Duration, lastActivity *time.Time) {

@@ -22,6 +22,7 @@ func enterRoom(client *firestore.Client) func(*gin.Context) {
 		// パラメータ取得
 		type ReqData struct {
 			Password string `json:"password" binding:"required"`
+			Name     string `json:"name" binding:"required"`
 		}
 
 		var reqData ReqData
@@ -33,7 +34,7 @@ func enterRoom(client *firestore.Client) func(*gin.Context) {
 		util.Log(util.LogObj{"requested enterRoom()", reqData})
 
 		var resData *roomObj.Room
-		// 1. パラメータを元に対象パスワードのルームがあるか確認
+		// 1-1. パラメータを元に対象パスワードのルームがあるか&名前が重複していないか確認
 
 		resData, err := roomObj.GetRoom(client, ctx, reqData.Password)
 		if err != nil {
@@ -43,7 +44,13 @@ func enterRoom(client *firestore.Client) func(*gin.Context) {
 		}
 
 		if resData != nil {
-			// 2-1. あったら200応答
+			// 2-0. あったらメンバー重複チェック
+			if resData.IsExistMember(reqData.Name) {
+				util.Log(util.LogObj{"error(Conflict member name)", reqData.Name})
+				c.IndentedJSON(http.StatusBadRequest, errorObj.CreateErrFromString("入室に失敗しました。\n既に使われている名前です。"))
+				return
+			}
+			// 2-1. 問題なければ200応答
 			c.IndentedJSON(http.StatusOK, resData)
 		} else {
 			// 2-2. 無かったらパスワードを元にルームを作成して201応答

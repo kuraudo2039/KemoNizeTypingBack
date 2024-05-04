@@ -23,6 +23,17 @@ type Room struct {
 
 var rooms = make(map[string]*Room)
 
+/* Struct Method */
+func (room *Room) IsExistMember(name string) bool {
+	for _, member := range room.Members {
+		if member.Name == name {
+			return true
+		}
+	}
+	return false
+}
+
+/* Package Method */
 func CreateRoom(client *firestore.Client, ctx context.Context, data RoomData) (*Room, error) {
 	resDoc, _, err := client.Collection("room").Add(ctx, data)
 	util.Log(util.LogObj{"created room", resDoc})
