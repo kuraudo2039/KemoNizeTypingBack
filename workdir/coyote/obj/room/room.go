@@ -98,6 +98,7 @@ func RemoveMember(roomId string, member memberObj.Member) *Room {
 		for i, v := range room.Members {
 			if v.Conn == member.Conn {
 				room.Members = append(room.Members[:i], room.Members[i+1:]...)
+				// memberObj.RemoveMember(member.Name)
 				util.Log(util.LogObj{"log(removed member to room: " + roomId + " )", member})
 			}
 		}
@@ -105,4 +106,18 @@ func RemoveMember(roomId string, member memberObj.Member) *Room {
 	} else {
 		return nil
 	}
+}
+
+func GetNextMember(roomId string, memberName string) memberObj.Member {
+	room := rooms[roomId]
+	for i, member := range room.Members {
+		if member.Name == memberName {
+			if i+1 == len(room.Members) {
+				return room.Members[0]
+			} else {
+				return room.Members[i+1]
+			}
+		}
+	}
+	return room.Members[0]
 }

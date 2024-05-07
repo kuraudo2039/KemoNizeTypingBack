@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	memberObj "gin_test/coyote/obj/member"
 	roomObj "gin_test/coyote/obj/room"
+	stateObj "gin_test/coyote/obj/state"
 	"gin_test/coyote/util"
 	"net/http"
 	"time"
@@ -16,8 +17,8 @@ import (
 
 type WSMessage struct {
 	Type     int             `json:"type"`
-	TypeName string          `json:"typename"`
-	RoomID   string          `json:"roomid"`
+	TypeName string          `json:"type_name"`
+	RoomID   string          `json:"room_id"`
 	Data     json.RawMessage `json:"data"`
 }
 
@@ -32,6 +33,7 @@ var wsupgrader = websocket.Upgrader{
 	},
 }
 
+// TODO_セッションフロー導通確認
 func ConnectWs(client *firestore.Client) func(*gin.Context) {
 	return func(c *gin.Context) {
 		// クエリパラメータ取得&ルーム存在チェック
@@ -89,8 +91,14 @@ func ConnectWs(client *firestore.Client) func(*gin.Context) {
 			switch msgJson.Type {
 			case 1:
 				sendComment(msgJson, roomId, broadcast)
-			case 2:
-
+			case 10:
+				startSession(roomId, broadcast)
+			case 11:
+				declareNum(msgJson, roomId, broadcast)
+			case 12:
+				declareCoyote(msgJson, roomId, broadcast)
+			case 13:
+				acceptStateEnd(member, roomId, broadcast)
 			default:
 				util.Log(util.LogObj{"log(Unknown message type)", msg})
 			}
@@ -102,6 +110,9 @@ func deferConnectWs(roomId string, member memberObj.Member) {
 	util.Log(util.LogObj{"log", "launch deferConnectWs"})
 
 	roomObj.RemoveMember(roomId, member)
+	if state := stateObj.GetStateFromMemory(roomId); state != nil {
+		state.RemoveMemberStatus(member)
+	}
 	membersUpdate(roomId, broadcast)
 }
 
