@@ -47,7 +47,7 @@ func enterRoom(client *firestore.Client) func(*gin.Context) {
 			// 2-0. あったらメンバー重複チェック
 			if resData.IsExistMember(reqData.Name) {
 				util.Log(util.LogObj{"error(Conflict member name)", reqData.Name})
-				c.IndentedJSON(http.StatusBadRequest, errorObj.CreateErrFromString("入室に失敗しました。\n既に使われている名前です。"))
+				c.IndentedJSON(http.StatusBadRequest, errorObj.CreateErrFromString("入室に失敗しました。\n既に使われている名前です。", 409))
 				return
 			}
 			// 2-1. 問題なければ200応答

@@ -6,6 +6,7 @@ import (
 	roomObj "gin_test/coyote/obj/room"
 	sessionObj "gin_test/coyote/obj/session"
 	stateObj "gin_test/coyote/obj/state"
+	"gin_test/coyote/util"
 	"time"
 )
 
@@ -54,6 +55,7 @@ func sendComment(reqMsg WSMessage, roomId string, broadcast chan WSMessage) {
 	// type Data struct {
 	// 	Comment Comment `json:"comment"`
 	// }
+	util.Log(util.LogObj{"log(sended message)", reqMsg.Data})
 
 	broadcast <- WSMessage{1, "send comment", roomId, reqMsg.Data}
 }
@@ -131,6 +133,7 @@ func proceedNextTurn(session *sessionObj.Session, roomId string, broadcast chan 
 	session.State.ProceedStateToInit(roomId, &session.Deck)
 	marshaledJson, _ := json.Marshal(map[string]interface{}{"session": session})
 	broadcast <- WSMessage{13, "proceed next turn", roomId, marshaledJson}
+
 }
 
 /*
@@ -143,6 +146,7 @@ func autoProceedNextTurn(roomId string, broadcast chan WSMessage) {
 	time.Sleep(20 * time.Second)
 	if len(session.State.EndAccepts) != len(session.State.Table) {
 		proceedNextTurn(session, roomId, broadcast)
+		util.Log(util.LogObj{"log(proceed next turn by timeout)", session})
 	}
 }
 
@@ -156,5 +160,6 @@ func acceptStateEnd(member memberObj.Member, roomId string, broadcast chan WSMes
 	session.State.AddEndAccepts(member.Name)
 	if len(session.State.EndAccepts) == len(session.State.Table) {
 		proceedNextTurn(session, roomId, broadcast)
+		util.Log(util.LogObj{"log(proceed next turn by accepts)", session})
 	}
 }

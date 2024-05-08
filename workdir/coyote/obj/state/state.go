@@ -33,16 +33,20 @@ func CreateState(roomId string, deck *cardObj.Deck) State {
 	table := createTable(*room, deck)
 	state := State{0, table, 0, "", room.Members[0].Name, 0, 0, make([]string, 0)}
 	states[roomId] = &state
+
+	util.Log(util.LogObj{"log(create state)", state})
 	return state
 }
 func GetStateFromMemory(roomId string) *State {
 	if state, ok := states[roomId]; ok {
+		util.Log(util.LogObj{"log(get state)", state})
 		return state
 	}
 	return nil
 }
 
 func (state *State) RemoveMemberStatus(member memberObj.Member) {
+	util.Log(util.LogObj{"log(remove member status from state)", map[string]interface{}{"state": state, "member": member}})
 	delete(state.Table, member.Name)
 }
 
@@ -101,6 +105,7 @@ func createTable(room roomObj.Room, deck *cardObj.Deck) map[string]*MemberStatus
 		memberStatus := MemberStatus{i, member, deck.DrawCard(), 3}
 		table[member.Name] = &memberStatus
 	}
+	util.Log(util.LogObj{"log(create table in state)", table})
 	return table
 }
 
@@ -113,6 +118,7 @@ func (state *State) updateTable(deck *cardObj.Deck) {
 	for _, memberStatus := range state.Table {
 		memberStatus.Card = deck.DrawCard()
 	}
+	util.Log(util.LogObj{"log(update table in state)", state.Table})
 }
 
 func (state *State) calcLimit(deck *cardObj.Deck) int {

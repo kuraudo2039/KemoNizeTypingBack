@@ -3,11 +3,14 @@ package coyoteWsApi
 import (
 	"context"
 	"encoding/json"
+	"fmt"
+	errorObj "gin_test/coyote/obj/error"
 	memberObj "gin_test/coyote/obj/member"
 	roomObj "gin_test/coyote/obj/room"
 	stateObj "gin_test/coyote/obj/state"
 	"gin_test/coyote/util"
 	"net/http"
+	"strconv"
 	"time"
 
 	"cloud.google.com/go/firestore"
@@ -23,6 +26,7 @@ type WSMessage struct {
 }
 
 var broadcast = make(chan WSMessage)
+var isHandleMessages = false
 
 var wsupgrader = websocket.Upgrader{
 	ReadBufferSize:  1024,
@@ -36,6 +40,7 @@ var wsupgrader = websocket.Upgrader{
 // TODO_セッションフロー導通確認
 func ConnectWs(client *firestore.Client) func(*gin.Context) {
 	return func(c *gin.Context) {
+		fmt.Println("0")
 		// クエリパラメータ取得&ルーム存在チェック
 		roomId := c.Query("id")
 		memberName := c.Query("name")
@@ -43,6 +48,7 @@ func ConnectWs(client *firestore.Client) func(*gin.Context) {
 			util.Log(util.LogObj{"error(Failed to get room by roomId)", roomId})
 			return
 		}
+		fmt.Println("1")
 
 		// websocketアップグレード
 		conn, err := wsupgrader.Upgrade(c.Writer, c.Request, nil)
@@ -51,15 +57,22 @@ func ConnectWs(client *firestore.Client) func(*gin.Context) {
 			return
 		}
 		defer conn.Close()
+		go HandleMessages()
+
+		fmt.Println("2")
 
 		// コンテキスト初期化
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 
+		fmt.Println("3")
+
 		// アイドルタイムアウトを30分に設定。アクティビティ時間と現在時間の差により切断
 		idleTimeout := 30 * time.Minute
 		lastActivity := time.Now()
 		go checkIdleTimeout(conn, ctx, idleTimeout, &lastActivity)
+
+		fmt.Println("4")
 
 		// メンバー作成＆ルームメンバー追加
 		member := memberObj.CreateMember(conn, memberName)
@@ -72,6 +85,8 @@ func ConnectWs(client *firestore.Client) func(*gin.Context) {
 		}
 		defer deferConnectWs(roomId, member)
 
+		fmt.Println("5")
+
 		// イベントハンドリング開始
 		for {
 			_, msg, err := conn.ReadMessage()
@@ -81,6 +96,9 @@ func ConnectWs(client *firestore.Client) func(*gin.Context) {
 			}
 			lastActivity = time.Now() // 受信時にアクティビティ時間更新
 
+			// wsハンドラルーチンが動いていなければ復帰
+			go HandleMessages()
+
 			var msgJson WSMessage
 			if err := json.Unmarshal(msg, &msgJson); err != nil {
 				util.Log(util.LogObj{"error(Failed to unmarshal message)", err.Error()})
@@ -88,6 +106,7 @@ func ConnectWs(client *firestore.Client) func(*gin.Context) {
 			}
 			util.Log(util.LogObj{"received", msgJson})
 
+			util.Log(util.LogObj{"■■■■■■■■■■■■■■■■ ws type " + strconv.Itoa(msgJson.Type) + " started ■■■■■■■■■■■■■■■■", ""})
 			switch msgJson.Type {
 			case 1:
 				sendComment(msgJson, roomId, broadcast)
@@ -102,6 +121,7 @@ func ConnectWs(client *firestore.Client) func(*gin.Context) {
 			default:
 				util.Log(util.LogObj{"log(Unknown message type)", msg})
 			}
+			util.Log(util.LogObj{"■■■■■■■■■■■■■■■■ ws type " + strconv.Itoa(msgJson.Type) + " end ■■■■■■■■■■■■■■■■", ""})
 		}
 	}
 }
@@ -114,6 +134,7 @@ func deferConnectWs(roomId string, member memberObj.Member) {
 		state.RemoveMemberStatus(member)
 	}
 	membersUpdate(roomId, broadcast)
+	member.Conn.WriteJSON(errorObj.CreateErrFromString("unknown error", 400))
 }
 
 func checkIdleTimeout(conn *websocket.Conn, ctx context.Context, idleTimeout time.Duration, lastActivity *time.Time) {
@@ -137,12 +158,20 @@ func checkHandleMessagesTimeout(cancel context.CancelFunc, idleTimeout time.Dura
 		time.Sleep(1 * time.Minute)
 		if time.Since(*lastActivity) > idleTimeout {
 			cancel()
+			isHandleMessages = false
 			return
 		}
 	}
 }
 
 func HandleMessages() {
+	// １プロセスに１ルーチン
+	if isHandleMessages {
+		return
+	}
+	isHandleMessages = true
+	util.Log(util.LogObj{"log", "HandleMessages routine launch"})
+
 	ctx, cancel := context.WithCancel(context.Background())
 
 	idleTimeout := 30 * time.Minute

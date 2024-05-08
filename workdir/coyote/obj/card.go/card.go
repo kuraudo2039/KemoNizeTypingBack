@@ -1,6 +1,7 @@
 package cardObj
 
 import (
+	"gin_test/coyote/util"
 	"math/rand"
 )
 
@@ -58,6 +59,8 @@ var deckTemp = []Card{
 
 func CreateDeck() Deck {
 	deck := Deck{initCards(), false, len(deckTemp)}
+
+	util.Log(util.LogObj{"log(create deck)", deck})
 	return deck
 }
 
@@ -77,6 +80,8 @@ func (deck *Deck) DrawCard() Card {
 	}
 
 	deck.Counts--
+
+	util.Log(util.LogObj{"log(draw card from deck)", map[string]interface{}{"deck": deck, "drawen card": drawenCard}})
 	return drawenCard
 }
 
@@ -84,12 +89,13 @@ func (deck *Deck) Shuffle() {
 	deck.Cards = initCards()
 	deck.Counts = len(deckTemp)
 	deck.IsShuffle = false
+	util.Log(util.LogObj{"log(shuffle card at deck)", deck})
 }
 
 /* local func*/
 
 func initCards() []Card {
-	cards := make([]Card, 0)
+	cards := make([]Card, len(deckTemp))
 	copy(cards, deckTemp)
 	return cards
 }
