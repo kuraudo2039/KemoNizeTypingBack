@@ -48,6 +48,7 @@ Send Comment
 to 多
 */
 func sendComment(reqMsg WSMessage, roomId string, broadcast chan WSMessage) {
+	// TODO_2024年5月20日_MemberのImageIDも付与していいかも
 	// type Comment struct {
 	//	Name string `json:"name"`
 	// 	Content string `json:"content"`
@@ -95,16 +96,16 @@ type 12
 Declare Coyote
 to 多
 */
-func declareCoyote(reqMsg WSMessage, roomId string, broadcast chan WSMessage) {
+func declareCoyote( /*reqMsg WSMessage, */ roomId string, broadcast chan WSMessage) {
 	session := sessionObj.GetSessionFromMemory(roomId)
-	type Data struct {
-		State stateObj.State `json:"state"`
-	}
+	// type Data struct {
+	// 	State stateObj.State `json:"state"`
+	// }
 
-	var data Data
-	json.Unmarshal(reqMsg.Data, &data)
+	// var data Data
+	// json.Unmarshal(reqMsg.Data, &data)
 	// 1. 計算結果をステートに反映
-	session.State.ProceedStateToCalc(&session.Deck, data.State)
+	session.State.ProceedStateToCalc(&session.Deck)
 	// 2. 計算結果をもとにコヨーテ成立判定
 	if session.State.LimitNum < session.State.DeclaredNum {
 		session.State.DecrementMemberStatusLife(session.State.DeclaredMemberName)
@@ -163,3 +164,5 @@ func acceptStateEnd(member memberObj.Member, roomId string, broadcast chan WSMes
 		util.Log(util.LogObj{"log(proceed next turn by accepts)", session})
 	}
 }
+
+// 同時にルームに戻るAPIは作っていない

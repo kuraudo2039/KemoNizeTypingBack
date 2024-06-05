@@ -115,7 +115,7 @@ func ConnectWs(client *firestore.Client) func(*gin.Context) {
 			case 11:
 				declareNum(msgJson, roomId, broadcast)
 			case 12:
-				declareCoyote(msgJson, roomId, broadcast)
+				declareCoyote( /*msgJson, */ roomId, broadcast)
 			case 13:
 				acceptStateEnd(member, roomId, broadcast)
 			default:
@@ -132,6 +132,9 @@ func deferConnectWs(roomId string, member memberObj.Member) {
 	roomObj.RemoveMember(roomId, member)
 	if state := stateObj.GetStateFromMemory(roomId); state != nil {
 		state.RemoveMemberStatus(member)
+		if len(state.Table) == 0 {
+			state.RemoveStateFromMemory(roomId)
+		}
 	}
 	membersUpdate(roomId, broadcast)
 	member.Conn.WriteJSON(errorObj.CreateErrFromString("unknown error", 400))

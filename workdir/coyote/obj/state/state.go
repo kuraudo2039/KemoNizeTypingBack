@@ -50,14 +50,20 @@ func (state *State) RemoveMemberStatus(member memberObj.Member) {
 	delete(state.Table, member.Name)
 }
 
+func (state *State) RemoveStateFromMemory(roomId string) {
+	util.Log(util.LogObj{"log(remove state from states memory)", roomId})
+	delete(states, roomId)
+}
+
 func (state *State) ProceedStateToDeclare(roomId string, reqState State) {
+	util.Log(util.LogObj{"log(proceed state to declare)", map[string]interface{}{"reqState": *state, "roomId": roomId}})
 	state.StateNum = 1
 	state.DeclaredNum = reqState.DeclaredNum
 	state.DeclaredMemberName = reqState.DeclaredMemberName
 	state.NextDeclareMemberName = state.getNextMemberName(reqState.DeclaredMemberName)
 }
 
-func (state *State) ProceedStateToCalc(deck *cardObj.Deck, reqState State) {
+func (state *State) ProceedStateToCalc(deck *cardObj.Deck) {
 	state.StateNum = 2
 	// リミット計算
 	state.LimitNum = state.calcLimit(deck)
