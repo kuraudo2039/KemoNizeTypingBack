@@ -144,7 +144,7 @@ auto proceed next turn
 */
 func autoProceedNextTurn(roomId string, broadcast chan WSMessage) {
 	session := sessionObj.GetSessionFromMemory(roomId)
-	time.Sleep(20 * time.Second)
+	time.Sleep(10 * time.Second)
 	if len(session.State.EndAccepts) != len(session.State.Table) {
 		proceedNextTurn(session, roomId, broadcast)
 		util.Log(util.LogObj{"log(proceed next turn by timeout)", session})
