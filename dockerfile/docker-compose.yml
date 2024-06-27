@@ -15,3 +15,9 @@ services:
     working_dir: /home/workdir
     container_name: coyote_gin
     command: sh -c "tail -f /dev/null"
+    networks:
+    - kemonizeTyping
+
+networks:
+  kemonizeTyping:
+    external: true
