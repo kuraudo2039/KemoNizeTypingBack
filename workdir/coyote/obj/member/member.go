@@ -9,6 +9,7 @@ import (
 type Member struct {
 	Name    string          `json:"name"`
 	ImageID int             `json:"image_id"`
+	SeID    int             `json:"se_id"`
 	Conn    *websocket.Conn `json:"-"`
 }
 
@@ -16,7 +17,7 @@ type Member struct {
 
 func CreateMember(conn *websocket.Conn, name string) Member {
 
-	return Member{name, rand.Intn(67), conn}
+	return Member{name, rand.Intn(68), rand.Intn(8), conn}
 }
 
 // func GetMember(name string) *Member {
